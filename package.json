@@ -3,7 +3,16 @@
   "version": "0.0.0",
   "description": "async peak detection/optimization",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "brukerconverter": "^4.0.0",
+    "filelist-from": "^0.3.0",
+    "is-any-array": "^2.0.0",
+    "ml-gsd": "^11.2.1",
+    "ml-spectra-processing": "^11.7.0",
+    "nmr-processing": "^7.4.3",
+    "piscina": "^3.2.0",
+    "spectrum-generator": "^8.0.2"
+  },
   "scripts": {
     "eslint": "eslint src --ext js,jsx",
     "eslint-fix": "npm run eslint -- --fix",
