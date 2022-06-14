@@ -1,0 +1,35 @@
+{
+  "name": "peakDetectionAsync",
+  "version": "0.0.0",
+  "description": "async peak detection/optimization",
+  "private": true,
+  "dependencies": {},
+  "scripts": {
+    "eslint": "eslint src --ext js,jsx",
+    "eslint-fix": "npm run eslint -- --fix",
+    "test": "npm run test-coverage && npm run eslint",
+    "test-coverage": "jest --coverage",
+    "test-only": "jest"
+  },
+  "eslintConfig": {
+    "extends": "cheminfo-react",
+    "parser": "babel-eslint",
+    "rules": {
+      "import/no-unresolved": "off"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jobo322/peakDetectionAsync.git"
+  },
+  "keywords": [],
+  "author": "Jose Alejandro Bolanos Arroyave (jobo322)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jobo322/peakDetectionAsync/issues"
+  },
+  "homepage": "https://github.com/jobo322/peakDetectionAsync#readme",
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
