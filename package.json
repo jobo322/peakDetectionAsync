@@ -2,7 +2,6 @@
   "name": "peakDetectionAsync",
   "version": "0.0.0",
   "description": "async peak detection/optimization",
-  "private": true,
   "dependencies": {
     "brukerconverter": "^4.0.0",
     "filelist-from": "^0.3.0",
