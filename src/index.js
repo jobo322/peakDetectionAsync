@@ -6,7 +6,7 @@ const { readFileSync, writeFileSync } = require('fs');
 const { join, resolve } = require('path');
 
 const { convertFileList } = require('brukerconverter');
-const { fileListFromPath } = require('filelist-from');
+const { fileListFromPath } = require('filelist-utils');
 const { isAnyArray } = require('is-any-array');
 const { gsd, optimizePeaks } = require('ml-gsd');
 const { xyExtract } = require('ml-spectra-processing');
@@ -19,10 +19,10 @@ const {
 const { SpectrumGenerator } = require('spectrum-generator');
 const { Piscina } = require('piscina');
 
-const path = 'C:\\Users\\alejo\\Documents\\test_biogune';
+const path = '/data/airwaveProject/decompressed/testData';
 const pathToWrite = './';
 
-const csvData = readFileSync('./src/annotationDB.xlsx - molecule.csv', 'utf-8');
+const csvData = readFileSync('./src/annotationDB.csv', 'utf-8');
 const database = getJSON(csvData);
 const ROI = getROIs(database, [
   { name: 'name' },
@@ -56,10 +56,9 @@ let gsdOptions = {
 let converterOptions = {
   converter: { xy: true },
   filter: {
-    experimentNumber: [11, 12],
     processingNumber: [1],
     ignoreFID: true,
-    ignore2D: false,
+    ignore2D: true,
   },
 };
 
@@ -77,10 +76,13 @@ let alignmentOptions = {
 // hacer la exportacion solo de -0.1 - 10 ppm
 async function main() {
   const fileList = fileListFromPath(path);
+  // console.log(fileList.map(e => e.webkitRelativePath))
   const pdata = await convertFileList(fileList, converterOptions);
   const groups = {};
+  console.log('pdata.length', pdata.length)
   for (let data of pdata) {
-    const { name } = data.source;
+    const name = data.source.expno;
+    console.log(name)
     if (!groups[name]) groups[name] = [];
     groups[name].push(data);
   }
@@ -103,7 +105,7 @@ async function main() {
 
     await Promise.all(promises).then((result) => {
       writeFileSync(
-        join(pathToWrite, `result_${result[0].name}.json`),
+        join(pathToWrite, `result_${result[0].name}_${result[0].expno}.json`),
         JSON.stringify(result),
       );
     });

@@ -4,7 +4,7 @@
   "description": "async peak detection/optimization",
   "dependencies": {
     "brukerconverter": "^4.0.0",
-    "filelist-from": "^0.3.0",
+    "filelist-utils": "^0.5.0",
     "is-any-array": "^2.0.0",
     "ml-gsd": "^11.2.1",
     "ml-spectra-processing": "^11.7.0",
@@ -39,5 +39,8 @@
   "homepage": "https://github.com/jobo322/peakDetectionAsync#readme",
   "jest": {
     "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0"
   }
 }
