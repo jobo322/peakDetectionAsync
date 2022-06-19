@@ -2,29 +2,8 @@ const { isAnyArray } = require('is-any-array');
 const { gsd, optimizePeaks } = require('ml-gsd');
 const { xyExtract } = require('ml-spectra-processing');
 const { xyzAutoZonesPicking, xyzJResAnalyzer } = require('nmr-processing');
+const { optimizationOptions } = require('./options');
 
-let optimizationOptions = {
-  groupingFactor: 8,
-  factorLimits: 2,
-  shape: {
-    kind: 'pseudoVoigt',
-  },
-  optimization: {
-    kind: 'lm',
-    parameters: {
-      x: {
-        max: (peak) => peak.x + peak.width * 2,
-        min: (peak) => peak.x - peak.width * 2,
-      },
-      y: {
-        max: () => 1.05,
-      },
-    },
-    options: {
-      maxIterations: 300,
-    },
-  },
-};
 
 function processROI(data) {
   const { roi, xyData, gsdOptions } = data;
@@ -34,11 +13,11 @@ function processROI(data) {
   });
 
   let peaks = gsd(experimental, gsdOptions);
-  let optimizedPeaks = optimizePeaks(experimental, peaks, optimizationOptions);
+  let optimizedPeaks = peaks//optimizePeaks(experimental, peaks, optimizationOptions);
 
   return {
     roi,
-    peaks,
+    peaks: [],
     optimizedPeaks,
   };
 }

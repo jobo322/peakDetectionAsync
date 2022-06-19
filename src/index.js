@@ -8,15 +8,11 @@ const { join, resolve } = require('path');
 const { convertFileList } = require('brukerconverter');
 const { fileListFromPath } = require('filelist-utils');
 const { isAnyArray } = require('is-any-array');
-const { gsd, optimizePeaks } = require('ml-gsd');
-const { xyExtract } = require('ml-spectra-processing');
 const {
   solventSuppression,
   xyAutoPeaksPicking,
-  xyzAutoZonesPicking,
-  xyzJResAnalyzer,
 } = require('nmr-processing');
-const { SpectrumGenerator } = require('spectrum-generator');
+const { getName, process2DOptions, converterOptions, gsdOptions, alignmentOptions } = require('./options');
 const { Piscina } = require('piscina');
 
 const path = '/data/airwaveProject/decompressed/testData';
@@ -35,54 +31,15 @@ const ROI = getROIs(database, [
   { path: ['urine'], name: 'to [ppm]', saveAs: 'to' },
 ]);
 
-// const ROI = [{ name: 'hola mundo', from: 3.2, to: 3.4 }];
-
-let process2DOptions = {
-  zonesPicking: {
-    tolerances: [5, 100],
-    nuclei: ['1H', '1H'],
-    realTopDetection: false,
-  },
-  jResAnalyzer: { reference: 0, getZones: true },
-};
-
-let gsdOptions = {
-  minMaxRatio: 0.01,
-  broadRatio: 0.00025,
-  smoothY: true,
-  realTopDetection: true,
-};
-
-let converterOptions = {
-  converter: { xy: true },
-  filter: {
-    processingNumber: [1],
-    ignoreFID: true,
-    ignore2D: true,
-  },
-};
-
-let alignmentOptions = {
-  // reference peaks is the pattern to use only relative intensity import
-  referencePeaks: [
-    { x: 1.4594310568750366, y: 1 },
-    { x: 1.4739230927913445, y: 1 },
-  ],
-  // the expected delta of reference signal,
-  delta: 1.47,
-  // the region to make the PP and search the reference signal
-  fromTo: { from: 5.1, to: 5.4 },
-};
 // hacer la exportacion solo de -0.1 - 10 ppm
 async function main() {
   const fileList = fileListFromPath(path);
-  // console.log(fileList.map(e => e.webkitRelativePath))
   const pdata = await convertFileList(fileList, converterOptions);
   const groups = {};
   console.log('pdata.length', pdata.length)
-  for (let data of pdata) {
-    const name = data.source.expno;
-    console.log(name)
+  for (let i = 0; i < pdata.length; i++) {
+    const data = pdata[i];
+    const name = getName(data, i);
     if (!groups[name]) groups[name] = [];
     groups[name].push(data);
   }
@@ -194,6 +151,7 @@ function getJSON(data) {
 
   return metabolites;
 }
+
 function align(input) {
   const { spectrum, referencePeaks, delta, fromTo } = input;
 
