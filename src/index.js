@@ -5,17 +5,17 @@
 const { readFileSync, writeFileSync } = require('fs');
 const { join, resolve } = require('path');
 
-const { convertFileList } = require('brukerconverter');
+const { convertFileList, groupByExperiments } = require('brukerconverter');
 const { fileListFromPath } = require('filelist-utils');
 const { isAnyArray } = require('is-any-array');
 const {
   solventSuppression,
   xyAutoPeaksPicking,
 } = require('nmr-processing');
-const { getName, process2DOptions, converterOptions, gsdOptions, alignmentOptions } = require('./options');
+const { getName, process2DOptions, converterOptions, gsdOptions, alignmentOptions, groupExperiments } = require('./options');
 const { Piscina } = require('piscina');
 
-const path = '/data/airwaveProject/decompressed/testData';
+const path = '/IVDR05/data/gemma_C1_URI_NMR-URI-LONG_IVDR05_GMAp04_290422';
 const pathToWrite = './';
 
 const csvData = readFileSync('./src/annotationDB.csv', 'utf-8');
@@ -34,38 +34,55 @@ const ROI = getROIs(database, [
 // hacer la exportacion solo de -0.1 - 10 ppm
 async function main() {
   const fileList = fileListFromPath(path);
-  const pdata = await convertFileList(fileList, converterOptions);
-  const groups = {};
-  console.log('pdata.length', pdata.length)
-  for (let i = 0; i < pdata.length; i++) {
-    const data = pdata[i];
-    const name = getName(data, i);
-    if (!groups[name]) groups[name] = [];
-    groups[name].push(data);
-  }
+  const experiments = groupByExperiments(fileList, converterOptions.filter);
+  console.log('exp length2', experiments.length);
 
+  // group the experiments to avoid reaching the memory limit
+  const groupsOfExperiments = groupExperiments(experiments);
   const piscina = new Piscina({
     filename: resolve(join(__dirname, 'worker.js')),
   });
-
-  for (const group in groups) {
-    let promises = [];
-    for (const data of groups[group]) {
-      if (data.twoD) {
-        promises.push(
-          piscina.run({ data, ...process2DOptions }, { name: 'process2D' }),
-        );
-      } else {
-        promises.push(process1D(data, piscina, { gsdOptions }));
-      }
+  console.log('groupOfExperiments.length', groupsOfExperiments.length)
+  for (const goe of groupsOfExperiments) {
+    const groupFileList = [];
+    console.log('goe', goe.length);
+    for (const experiment of goe) {
+      groupFileList.push(...experiment.fileList);
+    }
+    const pdata = await convertFileList(groupFileList, converterOptions);
+    const groups = {};
+    console.log('pdata length', pdata.length);
+    for (let i = 0; i < pdata.length; i++) {
+      const data = pdata[i];
+      const name = getName(data, i);
+      if (!groups[name]) groups[name] = [];
+      groups[name].push(data);
     }
 
-    await Promise.all(promises).then((result) => {
-      writeFileSync(
-        join(pathToWrite, `result_${result[0].name}_${result[0].expno}.json`),
-        JSON.stringify(result),
-      );
-    });
+    for (const groupName in groups) {
+      let promises = [];
+      for (const data of groups[groupName]) {
+        if (data.twoD) {
+          const { zonesPicking, jResAnalyzer } = process2DOptions;
+          promises.push(
+            piscina.run({ data, zonesPicking, jResAnalyzer }, { name: 'process2D' }),
+          );
+        } else {
+          promises.push(process1D(data, piscina, { gsdOptions }));
+        }
+
+      }
+
+      await Promise.all(promises).then((result) => {
+        for (const spectrum of result) {
+          spectrum.name = groupName;
+        }
+        writeFileSync(
+          join(pathToWrite, `result_${result[0].name}_${result[0].expno}.json`),
+          JSON.stringify(result),
+        );
+      });
+    }
   }
 }
 
@@ -205,16 +222,19 @@ async function process1D(data, piscina, options = {}) {
 
   const promises = [];
   for (let roi of ROI) {
+
+    if (roi.from === roi.to) continue;
+
     promises.push(
       piscina.run(
         { xyData, roi, optimizationOptions, gsdOptions },
-        { name: 'processROI' },
+        { name: 'processROI' }, // transferList: [xyData, roi, optimizationOptions, gsdOptions]
       ),
     );
   }
   return Promise.all(promises).then((fit) => {
     return {
-      name: data.source.name,
+      folderName: data.source.name,
       expno: data.source.expno,
       fit,
       xyData: ensureArray(xyData),

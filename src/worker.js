@@ -44,7 +44,7 @@ function process2D(options) {
 
   return {
     isTwoD: true,
-    name: data.source.name,
+    folderName: data.source.name,
     expno: data.source.expno,
     zones: newZones,
     experimental: {
