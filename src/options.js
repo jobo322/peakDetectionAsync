@@ -1,4 +1,7 @@
+'use strict';
 
+const { getName } = require('./utils/getName');
+const { groupExperiments } = require('./utils/groupExperiments');
 
 const process2DOptions = {
   zonesPicking: {
@@ -10,7 +13,7 @@ const process2DOptions = {
 };
 
 const gsdOptions = {
-  minMaxRatio: 0.01,
+  minMaxRatio: 0.001,
   broadRatio: 0.00025,
   smoothY: true,
   realTopDetection: true,
@@ -22,7 +25,7 @@ const converterOptions = {
     // experimentNumber: [120, 121, 122],
     onlyFirstProcessedData: true,
     ignoreFID: true,
-    ignore2D: false,
+    ignore2D: true,
   },
 };
 
@@ -52,63 +55,48 @@ let optimizationOptions = {
 let alignmentOptions = {
   // reference peaks is the pattern to use only relative intensity import
   referencePeaks: [
-    { x: 1.4594310568750366, y: 1 },
-    { x: 1.4739230927913445, y: 1 },
+    { x: 0, y: 1 },
   ],
   // the expected delta of reference signal,
-  delta: 1.47,
+  delta: 0,
   // the region to make the PP and search the reference signal
   fromTo: { from: 5.1, to: 5.4 },
+  // peak detection options
+  gsdOptions: {
+    minMaxRatio: 0.8,
+    broadRatio: 0.00025,
+    smoothY: true,
+    realTopDetection: true,
+  },
 };
 
-function getNameNormal(data, index) {
+// alignment2D is succetible of changes
+let alignment2DOptions = {
+  // reference peaks is the pattern to use only relative intensity import
+  referencePeaks: [
+    { x: 0, y: 0 },
+  ],
+  // the expected delta of reference signal [x, y],
+  delta: [0, 0],
+  // the region to make the PP and search the reference signal
+  fromTo: {
+    x:{ from: 5.1, to: 5.4 },
+    y:{ from: -0.001, to: 0.001 }
+  }
+  // peak detection options /TODO/
+};
+
+function getNameNormal(data) {
   const sourceName = data.source.name;
   const expno = data.source.expno;
   return `${sourceName}_${expno}`;
 }
 
-function getName(data) {
-  const sourceName = data.meta.USERA2;
-
-  const name = sourceName.replace(/<(.*)\>/, '$1')
-  return name;
-}
-
-function groupExperiments(experiments) {
-  if (experiments.length < 2) return [experiments];
-
-  experiments.sort((exp1, exp2) => exp1.expno - exp2.expno);
-
-  let groups = [];
-  let group = [experiments[0]];
-  for (let i = 1; i < experiments.length; i++) {
-    const experiment = experiments[i];
-    // console.log('expno', experiment.expno, i, experiments.length);
-    if (experiment.expno < 10000) {
-      const diff = Math.abs(experiment.expno - group[0].expno);
-      if (diff < 2) {
-        group.push(experiment);
-      } else if (diff > 4) {
-        groups.push([...group]);
-        group = [experiments[i]];
-      }
-    }
-    if (i === experiments.length - 1) {
-      groups.push([...group]);
-    }
-  }
-
-  if (groups[groups.length - 1].length !== group.length) {
-    groups.push(group);
-  }
-
-  return groups;
-}
-
 module.exports = {
-  getName,
+  getName: getName || getNameNormal,
   groupExperiments,
   alignmentOptions,
+  alignment2DOptions,
   process2DOptions,
   gsdOptions,
   converterOptions,

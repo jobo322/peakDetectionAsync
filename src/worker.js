@@ -1,9 +1,12 @@
+'use strict';
+
 const { isAnyArray } = require('is-any-array');
-const { gsd, optimizePeaks } = require('ml-gsd');
+const { gsd } = require('ml-gsd');
+// const { optimizedPeaks } = require('ml-gsd');
 const { xyExtract } = require('ml-spectra-processing');
 const { xyzAutoZonesPicking, xyzJResAnalyzer } = require('nmr-processing');
-const { optimizationOptions } = require('./options');
 
+// const { optimizationOptions } = require('./options');
 
 function processROI(data) {
   const { roi, xyData, gsdOptions } = data;
