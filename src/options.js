@@ -13,7 +13,7 @@ const process2DOptions = {
 };
 
 const gsdOptions = {
-  minMaxRatio: 0.001,
+  minMaxRatio: 0.0005,
   broadRatio: 0.00025,
   smoothY: true,
   realTopDetection: true,
@@ -60,14 +60,18 @@ let alignmentOptions = {
   // the expected delta of reference signal,
   delta: 0,
   // the region to make the PP and search the reference signal
-  fromTo: { from: 5.1, to: 5.4 },
-  // peak detection options
-  gsdOptions: {
+  ppOptions: {
+    from: -1,
+    to: 1,
+    // peak detection options
     minMaxRatio: 0.8,
     broadRatio: 0.00025,
     smoothY: true,
     realTopDetection: true,
-  },
+    optimize: false,
+    shape: { kind: 'lorentzian' },
+    groupingFactor: 2.5,
+  }
 };
 
 // alignment2D is succetible of changes
@@ -80,8 +84,8 @@ let alignment2DOptions = {
   delta: [0, 0],
   // the region to make the PP and search the reference signal
   fromTo: {
-    x:{ from: 5.1, to: 5.4 },
-    y:{ from: -0.001, to: 0.001 }
+    x: { from: 5.1, to: 5.4 },
+    y: { from: -0.001, to: 0.001 }
   }
   // peak detection options /TODO/
 };

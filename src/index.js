@@ -14,9 +14,9 @@ const { align } = require('./utils/align');
 const { getJSON } = require('./utils/getJSON');
 const { getROIs } = require('./utils/getROIs');
 
-//const path = '/IVDR05/data/gemma_C1_URI_NMR-URI-LONG_IVDR05_GMAp04_290422';
+// const path = '/IVDR05/data/gemma_C1_URI_NMR-URI-LONG_IVDR05_GMAp04_290422';
 const path = '/IVDR02/data/covid19_heidelberg_URI_NMR_URINE_IVDR02_COVp96_181121';
-const pathToWrite = '';
+const pathToWrite = '/home/centos/result_peakpicking';
 
 const csvData = readFileSync('./src/annotationDB.csv', 'utf-8');
 const database = getJSON(csvData);
@@ -30,7 +30,6 @@ const ROI = getROIs(database, [
   { path: ['urine'], name: 'from [ppm]', saveAs: 'from' },
   { path: ['urine'], name: 'to [ppm]', saveAs: 'to' },
 ]);
-
 
 if (!existsSync(pathToWrite)) {
   mkdirSync(pathToWrite);

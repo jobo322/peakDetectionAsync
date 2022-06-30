@@ -3,12 +3,12 @@
   "version": "0.0.0",
   "description": "async peak detection/optimization",
   "dependencies": {
-    "brukerconverter": "^4.0.0",
+    "brukerconverter": "^4.1.0",
     "filelist-utils": "^0.5.0",
     "is-any-array": "^2.0.0",
     "ml-gsd": "^11.2.1",
     "ml-spectra-processing": "^11.7.0",
-    "nmr-processing": "^7.4.3",
+    "nmr-processing": "^8.2.0",
     "piscina": "^3.2.0",
     "spectrum-generator": "^8.0.2"
   },

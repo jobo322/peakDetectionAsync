@@ -6,15 +6,11 @@ const {
 } = require('nmr-processing');
 
 function align(input) {
-    const { spectrum, referencePeaks, delta, fromTo } = input;
+    const { spectrum, referencePeaks, delta, ppOptions } = input;
 
     const xyData = { x: spectrum.x, y: spectrum.re };
-    const peaks = xyAutoPeaksPicking(xyData, {
-        ...fromTo,
-        optimize: true,
-        shape: { kind: 'lorentzian' },
-        groupingFactor: 2.5,
-    });
+
+    const peaks = xyAutoPeaksPicking(xyData, ppOptions);
 
     const marketPeaks = solventSuppression(
         peaks,
@@ -24,16 +20,17 @@ function align(input) {
                 peaks: referencePeaks,
             },
         ],
-        { markSolventPeaks: true },
+        { markSolventPeaks: true, solventZoneExtension: 0.1 },
     );
 
     if (peaks.length > 0) {
-        const glucosePeaks = marketPeaks.filter((peak) => peak.kind === 'solvent');
-        if (glucosePeaks.length < 1) {
+
+        const solventPeaks = marketPeaks.filter((peak) => peak.kind === 'solvent');
+        if (solventPeaks.length < 1) {
             throw new Error('glucose peaks had not been found');
         }
         const shift =
-            delta - glucosePeaks.reduce((a, b) => a + b.x, 0) / glucosePeaks.length;
+            delta - solventPeaks.reduce((a, b) => a + b.x, 0) / solventPeaks.length;
         xyData.x.forEach((e, i, arr) => (arr[i] += shift));
     }
 

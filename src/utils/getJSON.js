@@ -1,11 +1,12 @@
 'use strict';
 
-function getJSON(data) {
+function getJSON(data, ) {
+    const separator = '\t';
     const lines = data.split('\n');
-    let headers = [];
-    let secondHeaders = [];
-    let secondHeadersData = lines[1].split(',');
-    const firstHeadersData = lines[0].split(',');
+    const headers = [];
+    const secondHeaders = [];
+    const secondHeadersData = lines[1].split(separator);
+    const firstHeadersData = lines[0].split(separator);
     for (let i = 0; i < firstHeadersData.length; i++) {
         const cell = firstHeadersData[i];
         if (cell.length > 0) {
@@ -16,11 +17,11 @@ function getJSON(data) {
         }
     }
 
-    for (let i = 1; i < headers.length - 1; i++) {
+    for (let i = 1; i < headers.length; i++) {
         headers[i - 1].toIndex = headers[i].fromIndex - 1;
     }
 
-    for (let cell of secondHeadersData) {
+    for (const cell of secondHeadersData) {
         secondHeaders.push({
             name: cell.replace('\r', ''),
         });
@@ -41,10 +42,10 @@ function getJSON(data) {
 
     const checkLine = (line) => !line.trim().match(/\w+/g);
 
-    let metabolites = [];
+    const metabolites = [];
     for (let i = 2; i < lines.length; i++) {
         if (checkLine(lines[i])) continue;
-        const cells = lines[i].split(',');
+        const cells = lines[i].split(separator);
         let metabolite = {};
         for (let j = 0; j < secondHeaders.length; j++) {
             let headerName = getHeaderName(headers, j);
