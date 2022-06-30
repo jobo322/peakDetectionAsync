@@ -1,30 +1,42 @@
 'use strict';
 
-function getJSON(data, ) {
-    const separator = '\t';
-    const lines = data.split('\n');
+const { fromDataAsync } = require('xlsx-populate');
+
+async function getJSON(data, sheetNumber = 0) {
+    const xlsx = await fromDataAsync(data);
+    const sheet = xlsx.sheet(sheetNumber);
+    const minCol = sheet.row(2).minUsedColumnNumber();
+    const maxCol = sheet.row(2).maxUsedColumnNumber() + 1;
+
     const headers = [];
     const secondHeaders = [];
-    const secondHeadersData = lines[1].split(separator);
-    const firstHeadersData = lines[0].split(separator);
-    for (let i = 0; i < firstHeadersData.length; i++) {
-        const cell = firstHeadersData[i];
-        if (cell.length > 0) {
-            headers.push({
-                fromIndex: i,
-                name: cell,
-            });
+    const headerData = sheet.row(1);
+    const secondHeaderData = sheet.row(2);
+
+    for (let i = 1; i < maxCol; i++) {
+        const cell = headerData._cells[i];
+        if (!cell) continue;
+        const headerName = cell._value;
+        if (
+            headers.length > 0 &&
+            !('toIndex' in headers[headers.length - 1])
+        ) {
+            headers[headers.length - 1].toIndex = i - 1;
         }
-    }
 
-    for (let i = 1; i < headers.length; i++) {
-        headers[i - 1].toIndex = headers[i].fromIndex - 1;
-    }
+        if (!cell._value) continue;
 
-    for (const cell of secondHeadersData) {
-        secondHeaders.push({
-            name: cell.replace('\r', ''),
+        headers.push({
+            fromIndex: i,
+            name: headerName,
         });
+    }
+
+    for (let i = 1; i < secondHeaderData._cells.length; i++) {
+        const cell = secondHeaderData.cell(i);
+        secondHeaders[i] = {
+            name: cell.value().replace('\r', ''),
+        };
     }
 
     const getHeaderName = (headers, index) => {
@@ -32,31 +44,21 @@ function getJSON(data, ) {
             const { fromIndex, toIndex } = header;
             if (index >= fromIndex && index <= toIndex) return header.name;
         }
-        return 'null';
+        return '_noParentPresent_';
     };
-
-    const getValue = (str) => {
-        if (str.length === 0) return str;
-        return !isNaN(Number(str)) ? Number(str) : str;
-    };
-
-    const checkLine = (line) => !line.trim().match(/\w+/g);
 
     const metabolites = [];
-    for (let i = 2; i < lines.length; i++) {
-        if (checkLine(lines[i])) continue;
-        const cells = lines[i].split(separator);
-        let metabolite = {};
-        for (let j = 0; j < secondHeaders.length; j++) {
-            let headerName = getHeaderName(headers, j);
+    for (let i = 3; i < sheet._rows.length; i++) {
+        const row = sheet.row(i);
+        const metabolite = {};
+        for (let j = minCol; j < maxCol - 1; j++) {
+            const cellValue = row.cell(j).value();
+            const headerName = getHeaderName(headers, j);
             if (!metabolite[headerName]) metabolite[headerName] = {};
-            metabolite[headerName][secondHeaders[j].name] = getValue(
-                cells[j] ? cells[j].replace('\r', '') : '',
-            );
+            metabolite[headerName][secondHeaders[j].name] = cellValue || ''
         }
-        metabolite = { ...metabolite.null, ...metabolite };
-        delete metabolite.null;
-        metabolites.push(metabolite);
+        const { _noParentPresent_, ...rest } = metabolite;
+        metabolites.push({ ..._noParentPresent_, ...rest });
     }
 
     return metabolites;

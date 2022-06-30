@@ -18,24 +18,25 @@ const { getROIs } = require('./utils/getROIs');
 const path = '/IVDR02/data/covid19_heidelberg_URI_NMR_URINE_IVDR02_COVp96_181121';
 const pathToWrite = '/home/centos/result_peakpicking';
 
-const csvData = readFileSync('./src/annotationDB.csv', 'utf-8');
-const database = getJSON(csvData);
-const ROI = getROIs(database, [
-  { name: 'name' },
-  { name: 'smiles' },
-  { name: 'diaID' },
-  { name: 'multiplicity' },
-  { name: 'inchi key', saveAs: 'inchi' },
-  { path: ['urine'], name: 'delta [ppm]', saveAs: 'delta' },
-  { path: ['urine'], name: 'from [ppm]', saveAs: 'from' },
-  { path: ['urine'], name: 'to [ppm]', saveAs: 'to' },
-]);
-
 if (!existsSync(pathToWrite)) {
   mkdirSync(pathToWrite);
 }
 // hacer la exportacion solo de -0.1 - 10 ppm
 async function main() {
+  const xlsxData = readFileSync('./src/annotationDB.xlsx');
+  const database = await getJSON(xlsxData, 0);
+
+  const ROI = getROIs(database, [
+    { name: 'name' },
+    { name: 'smiles' },
+    { name: 'diaID' },
+    { name: 'multiplicity' },
+    { name: 'inchi key', saveAs: 'inchi' },
+    { path: ['urine'], name: 'delta [ppm]', saveAs: 'delta' },
+    { path: ['urine'], name: 'from [ppm]', saveAs: 'from' },
+    { path: ['urine'], name: 'to [ppm]', saveAs: 'to' },
+  ]);
+
   const fileList = fileListFromPath(path);
   const experiments = groupByExperiments(fileList, converterOptions.filter);
 
@@ -70,7 +71,7 @@ async function main() {
             piscina.run({ data, zonesPicking, jResAnalyzer }, { name: 'process2D' }),
           );
         } else {
-          promises.push(process1D(data, piscina, { gsdOptions }));
+          promises.push(process1D(data, piscina, { gsdOptions, ROI }));
         }
 
       }
@@ -91,7 +92,7 @@ async function main() {
 main();
 
 async function process1D(data, piscina, options = {}) {
-  const { optimizationOptions, gsdOptions } = options;
+  const { optimizationOptions, gsdOptions, ROI } = options;
 
   let spectrum = data.spectra[0].data;
   if (spectrum.x[0] > spectrum.x[1]) {

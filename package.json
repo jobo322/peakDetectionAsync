@@ -10,7 +10,8 @@
     "ml-spectra-processing": "^11.7.0",
     "nmr-processing": "^8.2.0",
     "piscina": "^3.2.0",
-    "spectrum-generator": "^8.0.2"
+    "spectrum-generator": "^8.0.2",
+    "xlsx-populate": "^1.21.0"
   },
   "scripts": {
     "eslint": "eslint src --ext js,jsx",
