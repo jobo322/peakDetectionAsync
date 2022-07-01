@@ -47,9 +47,22 @@ async function getJSON(data, sheetNumber = 0) {
         return '_noParentPresent_';
     };
 
+    const checkRow = (row) => {
+        const minCol = row.minUsedColumnNumber();
+        const maxCol = row.maxUsedColumnNumber();
+        for (let i = minCol; i <= maxCol; i++) {
+            if (row.cell(i).value() !== undefined) {
+                return false;
+            }
+        }
+        return true;
+    }
     const metabolites = [];
     for (let i = 3; i < sheet._rows.length; i++) {
         const row = sheet.row(i);
+
+        if (checkRow(row)) continue;
+        
         const metabolite = {};
         for (let j = minCol; j < maxCol - 1; j++) {
             const cellValue = row.cell(j).value();

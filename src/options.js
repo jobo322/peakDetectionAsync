@@ -64,7 +64,7 @@ let alignmentOptions = {
     from: -1,
     to: 1,
     // peak detection options
-    minMaxRatio: 0.8,
+    minMaxRatio: 0.5,
     broadRatio: 0.00025,
     smoothY: true,
     realTopDetection: true,
