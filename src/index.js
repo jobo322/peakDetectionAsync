@@ -21,8 +21,10 @@ const pathToWrite = '/home/centos/result_peakpicking';
 if (!existsSync(pathToWrite)) {
   mkdirSync(pathToWrite);
 }
+
+processPath(path);
 // hacer la exportacion solo de -0.1 - 10 ppm
-async function main() {
+async function processPath(path) {
   const xlsxData = readFileSync('./src/annotationDB.xlsx');
   const database = await getJSON(xlsxData, 0);
 
@@ -43,7 +45,7 @@ async function main() {
   // group the experiments to avoid reaching the memory limit
   const groupsOfExperiments = groupExperiments(experiments);
   const piscina = new Piscina({
-    filename: resolve(join(__dirname, 'worker.js')),
+    filename: join(__dirname, 'worker.js'),
   });
 
   for (const goe of groupsOfExperiments) {
@@ -88,8 +90,6 @@ async function main() {
     }
   }
 }
-
-main();
 
 async function process1D(data, piscina, options = {}) {
   const { optimizationOptions, gsdOptions, ROI } = options;
