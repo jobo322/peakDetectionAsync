@@ -53,7 +53,6 @@ function optimizeROI(data, signals, options = {}) {
     }
   }
 
-
   const sumOfShapes = getSumOfShapes(internalSignals);
 
   const { kind, options: optimizationOptions } = optimization;
@@ -82,11 +81,13 @@ function optimizeROI(data, signals, options = {}) {
       y: 0,
       shape: peak.shape,
       pattern: peak.pattern,
+      parameters: peak.parameters
     };
 
     newSignal.x = fittedValues[peak.fromIndex];
     newSignal.y = fittedValues[peak.fromIndex + 1] * minMaxY.range + shiftValue;
-    for (let i = 2; i < peak.parameters.length; i++) {
+    newSignal.coupling = fittedValues[peak.toIndex];
+    for (let i = 2; i < peak.parameters.length - 1; i++) {
       //@ts-expect-error should be fixed once
       newSignal.shape[peak.parameters[i]] = fittedValues[peak.fromIndex + i];
     }
@@ -111,13 +112,16 @@ function getSumOfShapes(internalSignals) {
       for (const signal of internalSignals) {
         const delta = parameters[signal.fromIndex];
         const intensity = parameters[signal.fromIndex + 1];
-        for (let i = 2; i <= signal.toIndex; i++) {
+        for (let i = 2; i <= signal.toIndex - 1; i++) {
           //@ts-expect-error Not simply to solve the issue
           signal.shapeFct[signal.parameters[i]] = parameters[signal.fromIndex + i];
         }
+        const coupling = parameters[signal.toIndex];
+        // console.log('coupling', coupling)?
         for (let peak of signal.pattern) {
           const { x, y } = peak;
-          totalY += y * intensity * signal.shapeFct.fct(currentX - x - delta);
+          const halfCoupling = x / Math.abs(x) * coupling / 2;
+          totalY += y * intensity * signal.shapeFct.fct(currentX - halfCoupling - delta);
         }
       }
       return totalY;
@@ -151,7 +155,7 @@ function getInternalSignals(
     const shapeFct = getShape1D(shape);
 
     //@ts-expect-error Should disappear with next release of peak-shape-generator
-    const parameters = ['x', 'y', ...shapeFct.getParameters()];
+    const parameters = ['x', 'y', ...shapeFct.getParameters(), 'coupling'];
 
     const propertiesValues = {
       min: [],
@@ -224,6 +228,7 @@ function getInternalSignals(
       shape,
       shapeFct,
       pattern: peak.pattern || [{ x: 0, y: 1 }],
+      coupling: peak.coupling,
       parameters,
       propertiesValues,
       fromIndex,

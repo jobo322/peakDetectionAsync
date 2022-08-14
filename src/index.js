@@ -1,7 +1,7 @@
 'use strict';
 
 const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
-const { join, resolve } = require('path');
+const { join } = require('path');
 
 
 const { convertFileList, groupByExperiments } = require('brukerconverter');
@@ -15,8 +15,8 @@ const { getJSON } = require('./utils/getJSON');
 const { getROIs } = require('./utils/getROIs');
 
 // const path = '/IVDR05/data/gemma_C1_URI_NMR-URI-LONG_IVDR05_GMAp04_290422';
-const path = '/IVDR02/data/covid19_heidelberg_URI_NMR_URINE_IVDR02_COVp96_181121';
-const pathToWrite = '/home/centos/result_peakpicking';
+const path = '/home/abolanos/spectraTest/covid19_heidelberg_URI_NMR_URINE_IVDR02_COVp93_181121';
+const pathToWrite = '/home/abolanos/result_peakpicking';
 
 if (!existsSync(pathToWrite)) {
   mkdirSync(pathToWrite);
@@ -25,7 +25,7 @@ if (!existsSync(pathToWrite)) {
 processPath(path);
 // hacer la exportacion solo de -0.1 - 10 ppm
 async function processPath(path) {
-  const xlsxData = readFileSync('./src/annotationDB.xlsx');
+  const xlsxData = readFileSync('./src/fakeDB_doublets.xlsx');
   const database = await getJSON(xlsxData, 0);
 
   const ROI = getROIs(database, [
@@ -100,18 +100,18 @@ async function process1D(data, piscina, options = {}) {
     spectrum.re = spectrum.re.reverse();
   }
 
-  const xyData = align({
-    spectrum,
-    ...alignmentOptions,
-  });
+  // const xyData = align({
+  //   spectrum,
+  //   ...alignmentOptions,
+  // });
 
-  // const xyData = { x: spectrum.x, y: spectrum.re };
+  const xyData = { x: spectrum.x, y: spectrum.re };
 
   const promises = [];
   for (let roi of ROI) {
 
     if (roi.from === roi.to) continue;
-
+    console.log(roi)
     promises.push(
       piscina.run(
         { xyData, roi, optimizationOptions, gsdOptions },

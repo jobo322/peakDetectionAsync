@@ -22,7 +22,7 @@ const gsdOptions = {
 const converterOptions = {
   converter: { xy: true },
   filter: {
-    // experimentNumber: [120, 121, 122],
+    experimentNumber: [40, 50],
     onlyFirstProcessedData: true,
     ignoreFID: true,
     ignore2D: true,

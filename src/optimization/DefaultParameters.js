@@ -1,4 +1,4 @@
-'use strinct';
+'use strict';
 
 const DefaultParameters = {
   x: {
@@ -28,6 +28,12 @@ const DefaultParameters = {
     min: () => 0,
     max: () => 1,
     gradientDifference: () => 0.01,
+  },
+  coupling: {
+    init: (peak) => peak.coupling,
+    min: (peak) => peak.coupling * 0.25,
+    max: (peak) => peak.coupling * 4,
+    gradientDifference: () => 0.000001,
   },
 };
 
