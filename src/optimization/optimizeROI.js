@@ -81,7 +81,7 @@ function optimizeROI(data, signals, options = {}) {
       y: 0,
       shape: peak.shape,
       pattern: peak.pattern,
-      parameters: peak.parameters
+      parameters: peak.parameterOptions,
     };
 
     newSignal.x = fittedValues[peak.fromIndex];
@@ -230,6 +230,7 @@ function getInternalSignals(
       pattern: peak.pattern || [{ x: 0, y: 1 }],
       coupling: peak.coupling,
       parameters,
+      parameterOptions: peak.parameters,
       propertiesValues,
       fromIndex,
       toIndex,
